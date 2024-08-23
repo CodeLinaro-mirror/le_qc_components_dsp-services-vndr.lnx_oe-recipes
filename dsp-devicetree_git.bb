@@ -6,10 +6,8 @@ inherit linux-kernel-base deploy
 
 FILESPATH   =+ "${WORKSPACE}:"
 SRC_URI     =  "file://vendor/qcom/opensource/dsp-devicetree"
-SRC_URI:trustedvm-v2 = "file://vendor/qcom/proprietary/dsp-devicetree"
 
 S = "${WORKDIR}/vendor/qcom/opensource/dsp-devicetree"
-S:trustedvm-v2 = "${WORKDIR}/vendor/qcom/proprietary/dsp-devicetree"
 
 do_configure[depends] = "virtual/kernel:do_shared_workdir"
 
