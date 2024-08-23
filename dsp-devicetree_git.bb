@@ -6,10 +6,8 @@ inherit linux-kernel-base deploy
 
 FILESPATH   =+ "${WORKSPACE}:"
 SRC_URI     =  "file://vendor/qcom/opensource/dsp-devicetree"
-SRC_URI:trustedvm-v2 = "file://vendor/qcom/proprietary/dsp-devicetree"
 
 S = "${WORKDIR}/vendor/qcom/opensource/dsp-devicetree"
-S:trustedvm-v2 = "${WORKDIR}/vendor/qcom/proprietary/dsp-devicetree"
 
 do_configure[depends] = "virtual/kernel:do_shared_workdir"
 
@@ -29,12 +27,10 @@ do_configure () {
 	:
 }
 
-EXT_MODULES = "${@os.path.relpath("${S}", "${KERNEL_PLATFORM_PATH}")}"
-
 do_compile() {
-    cd ${KERNEL_PLATFORM_PATH}
+    cd ${WORKSPACE}/kernel-${PREFERRED_VERSION_linux-msm}/kernel_platform  && \
     BUILD_CONFIG=${KERNEL_BUILD_CONFIG} \
-    EXT_MODULES=${EXT_MODULES} \
+    EXT_MODULES=../../vendor/qcom/opensource/dsp-devicetree \
     ROOTDIR=${WORKSPACE}/ \
     MODULE_OUT=${S} \
     KERNEL_KIT=${KERNEL_OUT_PATH}/ \
@@ -45,7 +41,7 @@ do_compile() {
 do_deploy() {
     install -d ${DEPLOYDIR}/build-artifacts/techpack-dtbos
     cp -a \
-    ${S}/${VM_KERNEL_TARGET}/*.dtbo \
+    ${S}/sun/*.dtbo \
     ${DEPLOYDIR}/build-artifacts/techpack-dtbos/
 }
 
