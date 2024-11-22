@@ -11,9 +11,10 @@ case "$1" in
     echo -n "Starting/Loading Fastrpc dsp_kernel module: "
 
     echo "dsp_kernel:start/load" > /dev/kmsg
-    insmod $MODULE_BASE/frpc-trusted-adsprpc.ko
-
-    echo "done loading dsp_kernel module"
+    insmod $MODULE_BASE/frpc-adsprpc.ko
+    echo "done loading frpc-adsprpc module"
+    insmod $MODULE_BASE/cdsp-loader.ko
+    echo "done loading cdsp-loader module"
     ;;
     stop)
     echo -n "Bypassing Unloading of dsp_kernel modules "
