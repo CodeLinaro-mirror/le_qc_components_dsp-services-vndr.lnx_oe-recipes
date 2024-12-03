@@ -48,9 +48,10 @@ do_compile() {
 }
 
 do_install() {
- install -d ${D}${sysconfdir}/initscripts
+  install -d ${D}${sysconfdir}/initscripts
   install -d ${D}${systemd_unitdir}/system/multi-user.target.wants/
   install -d ${D}/${includedir}/linux
+  install -d ${D}${base_libdir}/modules/${KERNEL_VERSION}
 
   install -m 0755 ${S}/include/linux/fastrpc.h ${D}/${includedir}/linux
   install -m 755 ${WORKDIR}/start_dsp_le ${D}${sysconfdir}/initscripts
@@ -68,6 +69,8 @@ do_install() {
   install -m 0755 ${S}/cdsp-loader.ko -D ${D}${libdir}/modules/cdsp-loader.ko
   install -m 0644 ${WORKDIR}/dsp.service -D ${D}${systemd_unitdir}/system/dsp.service
   ln -sf ${systemd_unitdir}/system/dsp.service ${D}${systemd_unitdir}/system/multi-user.target.wants/dsp.service
+
+  install -m 0644 ${S}/Module.symvers -D ${D}${base_libdir}/modules/${KERNEL_VERSION}/fastrpc-kernel/Module.symvers
 }
 
 do_deploy() {
@@ -84,5 +87,6 @@ FILES:${PN} += "/etc/initscripts/start_dsp_le"
 FILES:${PN} += "${libdir}/modules/*"
 FILES:${PN} += "${systemd_unitdir}/system/dsp.service"
 FILES:${PN} += "${systemd_unitdir}/system/multi-user.target.wants/dsp.service"
+FILES:${PN} += "${base_libdir}/modules/${KERNEL_VERSION}/fastrpc-kernel/Module.symvers"
 FILES:${PN}-dev += "/include"
 FILES:${PN}-dev += "/include/linux"
