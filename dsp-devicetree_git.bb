@@ -34,12 +34,13 @@ EXT_MODULES = "${@os.path.relpath("${S}", "${KERNEL_PLATFORM_PATH}")}"
 do_compile() {
     cd ${KERNEL_PLATFORM_PATH}
     BUILD_CONFIG=${KERNEL_BUILD_CONFIG} \
+    KBUILD_OPTIONS="ARCH=arm64" \
     EXT_MODULES=${EXT_MODULES} \
     ROOTDIR=${WORKSPACE}/ \
     MODULE_OUT=${S} \
     KERNEL_KIT=${KERNEL_OUT_PATH}/ \
     OUT_DIR=temp_out_dir \
-    ./build/build_module.sh
+    ./build/build_module.sh dtbs
 }
 
 do_deploy() {
