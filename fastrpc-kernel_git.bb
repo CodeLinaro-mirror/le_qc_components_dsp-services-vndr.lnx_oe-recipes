@@ -28,7 +28,7 @@ PARALLEL_MAKE = ""
 # Disable parallel make
 PARALLEL_MAKE = "-j1"
 
-STRIP_VERSION = "${@bb.utils.contains('MACHINE_FEATURES', 'qti-vm-target', '11.4.0', '9.3.0', d)}"
+STRIP_VERSION = "${@bb.utils.contains('MACHINE_FEATURES', 'qti-vm-target', '${KP_STRIP_VERSION}', '9.3.0', d)}"
 SIGN_PATH = "${@bb.utils.contains('MACHINE_FEATURES', 'qti-vm-target', 'dist', '../msm-kernel/scripts', d)}"
 CERT_PATH = "${@bb.utils.contains('MACHINE_FEATURES', 'qti-vm-target', 'dist', '../msm-kernel/certs', d)}"
 LD_PATH = "${@oe.utils.conditional('KERNEL_TOOLS_USES_MUSLC', 'True', "${LD_PATH_MUSLC}", "${LD_PATH_GLIBC}", d)}"
@@ -42,8 +42,12 @@ do_configure() {
 
 do_compile() {
   cd ${WORKSPACE}/kernel-${PREFERRED_VERSION_linux-msm}/kernel_platform  &&
-  BUILD_CONFIG=msm-kernel/build.config.msm.${VM_TARGET}.tuivm \
+
+  BUILD_CONFIG=${KERNEL_BUILD_CONFIG} \
   EXT_MODULES=../../vendor/qcom/opensource/dsp-kernel \
+  ENABLE_DDK_BUILD=${DDK_BUILD} \
+  TARGET_BOARD_PLATFORM=${TARGET_BOARD_PLATFORM} \
+  VARIANT=${KERNEL_DEFCONFIG_VARIANT} \
   ROOTDIR=${WORKSPACE}/ \
   MODULE_OUT=${WORKDIR}/vendor/qcom/opensource/dsp-kernel \
   OUT_DIR=temp_out_dir \
@@ -97,3 +101,5 @@ FILES:${PN} += "${systemd_unitdir}/system/dsp.service"
 FILES:${PN} += "${systemd_unitdir}/system/multi-user.target.wants/dsp.service"
 FILES:${PN}-dev += "/include"
 FILES:${PN}-dev += "/include/linux"
+
+RM_WORK_EXCLUDE += "${PN}"
