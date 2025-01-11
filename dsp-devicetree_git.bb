@@ -30,6 +30,7 @@ do_configure () {
 do_compile() {
     cd ${WORKSPACE}/kernel-${PREFERRED_VERSION_linux-msm}/kernel_platform  && \
     BUILD_CONFIG=${KERNEL_BUILD_CONFIG} \
+    KBUILD_OPTIONS="ARCH=arm64" \
     EXT_MODULES=../../vendor/qcom/opensource/dsp-devicetree \
     ROOTDIR=${WORKSPACE}/ \
     MODULE_OUT=${S} \
