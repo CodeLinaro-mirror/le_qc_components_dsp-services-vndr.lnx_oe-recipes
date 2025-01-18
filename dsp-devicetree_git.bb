@@ -41,7 +41,7 @@ do_compile() {
 do_deploy() {
     install -d ${DEPLOYDIR}/build-artifacts/techpack-dtbos
     cp -a \
-    ${S}/sun/*.dtbo \
+    ${S}/${VM_KERNEL_TARGET}/*.dtbo \
     ${DEPLOYDIR}/build-artifacts/techpack-dtbos/
 }
 
