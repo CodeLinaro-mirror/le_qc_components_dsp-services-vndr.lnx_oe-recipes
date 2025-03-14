@@ -28,9 +28,9 @@ PARALLEL_MAKE = ""
 # Disable parallel make
 PARALLEL_MAKE = "-j1"
 
-STRIP_VERSION = "${@bb.utils.contains('MACHINE_FEATURES', 'qti-vm-target', '11.4.0', '9.3.0', d)}"
 SIGN_PATH = "${@bb.utils.contains('MACHINE_FEATURES', 'qti-vm-target', 'dist', '../msm-kernel/scripts', d)}"
 CERT_PATH = "${@bb.utils.contains('MACHINE_FEATURES', 'qti-vm-target', 'dist', '../msm-kernel/certs', d)}"
+STRIP_VERSION = "14.2.0"
 
 do_compile[lockfiles] = "${TMPDIR}/build_modules.lock"
 
@@ -41,14 +41,13 @@ do_configure() {
 
 do_compile() {
   cd ${WORKSPACE}/kernel-${PREFERRED_VERSION_linux-msm}/kernel_platform  &&
-  BUILD_CONFIG=msm-kernel/build.config.msm.${VM_TARGET}.tuivm \
+  BUILD_CONFIG=msm-kernel/build.config.msm.${MACHINE}.le \
   EXT_MODULES=../../vendor/qcom/opensource/dsp-kernel \
   ROOTDIR=${WORKSPACE}/ \
   MODULE_OUT=${WORKDIR}/vendor/qcom/opensource/dsp-kernel \
   OUT_DIR=temp_out_dir \
   KERNEL_KIT=${KERNEL_OUT_PATH}/ \
   KERNEL_UAPI_HEADERS_DIR=${STAGING_KERNEL_BUILDDIR} \
-  CONFIG_MSM_ADSPRPC_TRUSTED=1 \
   ./build/build_module.sh
 }
 
@@ -64,9 +63,9 @@ do_install() {
   ${STAGING_DIR_NATIVE}/usr/libexec/aarch64-oe-linux/gcc/aarch64-oe-linux/${STRIP_VERSION}/strip \
         --strip-debug ${WORKDIR}/vendor/qcom/opensource/dsp-kernel/frpc-trusted-adsprpc.ko
 
-  LD_LIBRARY_PATH=${WORKSPACE}/kernel-${PREFERRED_VERSION_linux-msm}/kernel_platform/prebuilts/kernel-build-tools/linux-x86/lib64/ \
-  ${KERNEL_PREBUILT_PATH}/${SIGN_PATH}/sign-file sha1 ${KERNEL_PREBUILT_PATH}/${CERT_PATH}/signing_key.pem \
-  ${KERNEL_PREBUILT_PATH}/${CERT_PATH}/signing_key.x509 ${WORKDIR}/vendor/qcom/opensource/dsp-kernel/frpc-trusted-adsprpc.ko
+#  LD_LIBRARY_PATH=${WORKSPACE}/kernel-${PREFERRED_VERSION_linux-msm}/kernel_platform/prebuilts/kernel-build-tools/linux-x86/lib64/ \
+#  ${KERNEL_PREBUILT_PATH}/${SIGN_PATH}/sign-file sha1 ${KERNEL_PREBUILT_PATH}/${CERT_PATH}/signing_key.pem \
+#  ${KERNEL_PREBUILT_PATH}/${CERT_PATH}/signing_key.x509 ${WORKDIR}/vendor/qcom/opensource/dsp-kernel/frpc-trusted-adsprpc.ko
 
   install -m 0755 ${WORKDIR}/vendor/qcom/opensource/dsp-kernel/frpc-trusted-adsprpc.ko -D ${D}${libdir}/modules/frpc-trusted-adsprpc.ko
   install -m 0644 ${WORKDIR}/dsp.service -D ${D}${systemd_unitdir}/system/dsp.service
