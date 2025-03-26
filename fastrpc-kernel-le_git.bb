@@ -1,4 +1,4 @@
-DESCRIPTION = "Fastrpc Kernel drivers"
+DESCRIPTION = "Fastrpc Kernel driver"
 LICENSE = "GPL-2.0-only"
 LIC_FILES_CHKSUM = "file://include/linux/fastrpc.h;beginline=1;endline=4;md5=acb731fae05ccd6f44205970f6e3abed"
 
@@ -23,13 +23,8 @@ S = "${WORKDIR}/vendor/qcom/opensource/dsp-kernel"
 EXTRA_OEMAKE += "TARGET_SUPPORT=${BASEMACHINE}"
 
 # Disable parallel make
-PARALLEL_MAKE = ""
-
-# Disable parallel make
 PARALLEL_MAKE = "-j1"
 
-SIGN_PATH = "${@bb.utils.contains('MACHINE_FEATURES', 'qti-vm-target', 'dist', '../msm-kernel/scripts', d)}"
-CERT_PATH = "${@bb.utils.contains('MACHINE_FEATURES', 'qti-vm-target', 'dist', '../msm-kernel/certs', d)}"
 KERNEL_VERSION = "${@get_kernelversion_file("${STAGING_KERNEL_BUILDDIR}")}"
 EXT_MODULES = "${@os.path.relpath("${S}", "${KERNEL_PLATFORM_PATH}")}"
 
@@ -49,12 +44,13 @@ do_compile() {
 }
 
 do_install() {
- install -d ${D}${sysconfdir}/initscripts
+  install -d ${D}${sysconfdir}/initscripts
   install -d ${D}${systemd_unitdir}/system/multi-user.target.wants/
   install -d ${D}/${includedir}/linux
 
   install -m 0755 ${S}/include/linux/fastrpc.h ${D}/${includedir}/linux
   install -m 755 ${WORKDIR}/start_dsp_le ${D}${sysconfdir}/initscripts
+  sed -i 's/frpc-trusted-adsprpc/frpc-adsprpc/g' ${D}${sysconfdir}/initscripts/start_dsp_le
   install -m 0755 ${S}/frpc-adsprpc.ko -D ${WORKDIR}/${base_libdir}/modules/${KERNEL_VERSION}/frpc-adsprpc.ko
 
   install -m 0755 ${S}/frpc-adsprpc.ko -D ${D}${libdir}/modules/frpc-adsprpc.ko
