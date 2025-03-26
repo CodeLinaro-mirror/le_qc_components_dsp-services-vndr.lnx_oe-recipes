@@ -41,12 +41,15 @@ do_compile() {
 }
 
 do_deploy() {
-    install -d ${DEPLOYDIR}/build-artifacts/techpack-dtbos
-    cp -a \
-    ${S}/${VM_KERNEL_TARGET}/*.dtbo \
-    ${DEPLOYDIR}/build-artifacts/techpack-dtbos/
+    install -d ${DEPLOYDIR}/tech_dtbs/
+    if [ "${MACHINE}" ==  "qcs610-odk-64" ] ; then
+        install -m 0644 ${S}/qcs610/*.dtbo ${DEPLOYDIR}/tech_dtbs/
+    else
+        install -m 0644 ${S}/${MACHINE}/*.dtbo ${DEPLOYDIR}/tech_dtbs/
+    fi
 }
 
 addtask do_deploy after do_install
 
 FILES:${PN} += "${sysconfdir}/*"
+ALLOW_EMPTY:${PN} = "1"
