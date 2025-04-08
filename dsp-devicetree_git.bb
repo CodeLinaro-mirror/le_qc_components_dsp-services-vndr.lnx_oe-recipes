@@ -27,11 +27,13 @@ do_configure () {
 	:
 }
 
+EXT_MODULES = "${@os.path.relpath("${S}", "${KERNEL_PLATFORM_PATH}")}"
+
 do_compile() {
     cd ${WORKSPACE}/kernel-${PREFERRED_VERSION_linux-msm}/kernel_platform  && \
     BUILD_CONFIG=${KERNEL_BUILD_CONFIG} \
     KBUILD_OPTIONS="ARCH=arm64" \
-    EXT_MODULES=../../vendor/qcom/opensource/dsp-devicetree \
+    EXT_MODULES=${EXT_MODULES} \
     ROOTDIR=${WORKSPACE}/ \
     MODULE_OUT=${S} \
     KERNEL_KIT=${KERNEL_OUT_PATH}/ \
