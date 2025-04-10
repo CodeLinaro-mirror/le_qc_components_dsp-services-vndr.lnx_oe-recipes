@@ -56,6 +56,8 @@ do_install() {
   install -m 0755 ${S}/frpc-adsprpc.ko -D ${D}${libdir}/modules/frpc-adsprpc.ko
   install -m 0644 ${WORKDIR}/dsp.service -D ${D}${systemd_unitdir}/system/dsp.service
   ln -sf ${systemd_unitdir}/system/dsp.service ${D}${systemd_unitdir}/system/multi-user.target.wants/dsp.service
+
+  install -m 0644 ${S}/Module.symvers -D ${D}${base_libdir}/modules/${KERNEL_VERSION}/fastrpc-kernel/Module.symvers
 }
 
 do_deploy() {
