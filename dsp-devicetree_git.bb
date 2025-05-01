@@ -28,7 +28,6 @@ do_configure () {
 }
 
 EXT_MODULES = "${@os.path.relpath("${S}", "${KERNEL_PLATFORM_PATH}")}"
-INTERMEDIAT_KERNEL_PATH = "${WORKDIR}/out/${KERNEL_DEFCONFIG}"
 
 do_compile() {
     cd ${KERNEL_PLATFORM_PATH}
@@ -37,14 +36,20 @@ do_compile() {
     ROOTDIR=${WORKSPACE}/ \
     MODULE_OUT=${S} \
     KERNEL_KIT=${KERNEL_OUT_PATH}/ \
-    OUT_DIR=${INTERMEDIAT_KERNEL_PATH}  \
-    INPLACE_COMPILE=y \
+    OUT_DIR=temp_out_dir \
     ./build/build_module.sh
 }
 
 do_deploy() {
-    install -d ${DEPLOYDIR}/tech_dtbs
-    install -m 0644 ${S}/${MACHINE}/*.dtbo ${DEPLOYDIR}/tech_dtbs
+    if [ "${MACHINE}" = "sun" ]; then
+        install -d ${DEPLOYDIR}/tech_dtbs
+        install -m 0644 ${S}/${MACHINE}/*.dtbo ${DEPLOYDIR}/tech_dtbs
+    else
+        install -d ${DEPLOYDIR}/build-artifacts/techpack-dtbos
+        cp -a \
+        ${S}/${VM_KERNEL_TARGET}/*.dtbo \
+        ${DEPLOYDIR}/build-artifacts/techpack-dtbos/
+    fi
 }
 
 addtask do_deploy after do_install
