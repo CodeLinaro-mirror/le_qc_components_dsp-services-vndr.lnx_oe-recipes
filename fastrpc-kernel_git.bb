@@ -31,8 +31,6 @@ PARALLEL_MAKE = "-j1"
 STRIP_VERSION = "${@bb.utils.contains('MACHINE_FEATURES', 'qti-vm-target', '11.4.0', '9.3.0', d)}"
 SIGN_PATH = "${@bb.utils.contains('MACHINE_FEATURES', 'qti-vm-target', 'dist', '../msm-kernel/scripts', d)}"
 CERT_PATH = "${@bb.utils.contains('MACHINE_FEATURES', 'qti-vm-target', 'dist', '../msm-kernel/certs', d)}"
-KERNEL_VERSION = "${@get_kernelversion_file("${STAGING_KERNEL_BUILDDIR}")}"
-EXT_MODULES = "${@os.path.relpath("${S}", "${KERNEL_PLATFORM_PATH}")}"
 
 do_compile[lockfiles] = "${TMPDIR}/build_modules.lock"
 
@@ -42,12 +40,12 @@ do_configure() {
 }
 
 do_compile() {
-  cd ${KERNEL_PLATFORM_PATH}
-  BUILD_CONFIG=msm-kernel/${KERNEL_CONFIG} \
-  EXT_MODULES=${EXT_MODULES} \
+  cd ${WORKSPACE}/kernel-${PREFERRED_VERSION_linux-msm}/kernel_platform  &&
+  BUILD_CONFIG=msm-kernel/build.config.msm.${VM_TARGET}.tuivm \
+  EXT_MODULES=../../vendor/qcom/opensource/dsp-kernel \
+  ROOTDIR=${WORKSPACE}/ \
   MODULE_OUT=${WORKDIR}/vendor/qcom/opensource/dsp-kernel \
-  MODULE_OUT=${S} \
-  OUT_DIR=${WORKDIR}/out/${KERNEL_DEFCONFIG} \
+  OUT_DIR=temp_out_dir \
   KERNEL_KIT=${KERNEL_OUT_PATH}/ \
   KERNEL_UAPI_HEADERS_DIR=${STAGING_KERNEL_BUILDDIR} \
   CONFIG_MSM_ADSPRPC_TRUSTED=1 \
@@ -61,18 +59,22 @@ do_install() {
   install -d ${D}/usr/include
   cp -rf ${WORKSPACE}/vendor/qcom/opensource/dsp-kernel/include/uapi/ ${D}/usr/include
   install -m 755 ${WORKDIR}/start_dsp_le ${D}${sysconfdir}/initscripts
-  install -m 0755 ${S}/frpc-adsprpc.ko -D ${WORKDIR}/${base_libdir}/modules/${KERNEL_VERSION}/frpc-adsprpc.ko
+  install -m 0755 ${WORKDIR}/vendor/qcom/opensource/dsp-kernel/frpc-trusted-adsprpc.ko -D ${WORKDIR}/frpc-trusted-adsprpc.ko
+  # strip debug symbols and sign the module
+  ${STAGING_DIR_NATIVE}/usr/libexec/aarch64-oe-linux/gcc/aarch64-oe-linux/${STRIP_VERSION}/strip \
+        --strip-debug ${WORKDIR}/vendor/qcom/opensource/dsp-kernel/frpc-trusted-adsprpc.ko
 
-  install -m 0755 ${S}/frpc-adsprpc.ko -D ${D}${libdir}/modules/frpc-adsprpc.ko
+  LD_LIBRARY_PATH=${WORKSPACE}/kernel-${PREFERRED_VERSION_linux-msm}/kernel_platform/prebuilts/kernel-build-tools/linux-x86/lib64/ \
+  ${KERNEL_PREBUILT_PATH}/${SIGN_PATH}/sign-file sha1 ${KERNEL_PREBUILT_PATH}/${CERT_PATH}/signing_key.pem \
+  ${KERNEL_PREBUILT_PATH}/${CERT_PATH}/signing_key.x509 ${WORKDIR}/vendor/qcom/opensource/dsp-kernel/frpc-trusted-adsprpc.ko
+
+  install -m 0755 ${WORKDIR}/vendor/qcom/opensource/dsp-kernel/frpc-trusted-adsprpc.ko -D ${D}${libdir}/modules/frpc-trusted-adsprpc.ko
   install -m 0644 ${WORKDIR}/dsp.service -D ${D}${systemd_unitdir}/system/dsp.service
   ln -sf ${systemd_unitdir}/system/dsp.service ${D}${systemd_unitdir}/system/multi-user.target.wants/dsp.service
 }
 
 do_deploy() {
-  install -d ${DEPLOYDIR}/kernel_modules
-  for kmod in $(find ${D} -name "*.ko") ; do
-    install -m 0644 $kmod ${DEPLOYDIR}/kernel_modules
-  done
+  cp -rp ${WORKDIR}/frpc-trusted-adsprpc.ko ${DEPLOYDIR}/
 }
 
 addtask do_deploy after do_install
