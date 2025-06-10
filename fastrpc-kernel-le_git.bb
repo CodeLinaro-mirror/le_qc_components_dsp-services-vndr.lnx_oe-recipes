@@ -31,10 +31,9 @@ EXT_MODULES = "${@os.path.relpath("${S}", "${KERNEL_PLATFORM_PATH}")}"
 do_compile[lockfiles] = "${TMPDIR}/build_modules.lock"
 
 do_compile() {
-  cd ${WORKSPACE}/kernel-${PREFERRED_VERSION_linux-msm}/kernel_platform  &&
-  BUILD_CONFIG=msm-kernel/build.config.msm.${MACHINE}.le \
+  cd ${KERNEL_PLATFORM_PATH}
+  BUILD_CONFIG=msm-kernel/${KERNEL_CONFIG} \
   EXT_MODULES=../../vendor/qcom/opensource/dsp-kernel \
-  ROOTDIR=${WORKSPACE}/ \
   MODULE_OUT=${WORKDIR}/vendor/qcom/opensource/dsp-kernel \
   OUT_DIR=temp_out_dir \
   KERNEL_KIT=${KERNEL_OUT_PATH}/ \
@@ -56,6 +55,8 @@ do_install() {
   install -m 0755 ${S}/frpc-adsprpc.ko -D ${D}${libdir}/modules/frpc-adsprpc.ko
   install -m 0644 ${WORKDIR}/dsp.service -D ${D}${systemd_unitdir}/system/dsp.service
   ln -sf ${systemd_unitdir}/system/dsp.service ${D}${systemd_unitdir}/system/multi-user.target.wants/dsp.service
+
+  install -m 0644 ${S}/Module.symvers -D ${D}${base_libdir}/modules/${KERNEL_VERSION}/fastrpc-kernel/Module.symvers
 }
 
 do_deploy() {
