@@ -41,7 +41,7 @@ do_compile() {
 }
 
 do_deploy() {
-    if [ "${MACHINE}" = "sun" ] || [ ${MACHINE} == "qcs610-odk-64" ] || [ "${MACHINE}" = "kera" ]; then
+    if [ "${BASEMACHINE}" = "sun" ] || [ ${BASEMACHINE} == "sdmsteppe" ] || [ "${BASEMACHINE}" = "kera" ]; then
         install -d ${DEPLOYDIR}/tech_dtbs
         install -m 0644 ${S}/${MACHINE}/*.dtbo ${DEPLOYDIR}/tech_dtbs
     else
