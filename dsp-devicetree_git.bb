@@ -15,6 +15,8 @@ KERNEL_VERSION = "${@get_kernelversion_headers('${STAGING_KERNEL_BUILDDIR}')}"
 
 EXTRA_OEMAKE += "TARGET_SUPPORT=${BASEMACHINE}"
 
+ENABLED_TARGET_PLATFORMS = "alor-le"
+
 # Disable parallel make
 PARALLEL_MAKE = ""
 
@@ -42,12 +44,20 @@ do_compile() {
 }
 
 do_deploy() {
-    install -d ${DEPLOYDIR}/build-artifacts/techpack-dtbos
-    cp -a \
-    ${S}/${VM_KERNEL_TARGET}/*.dtbo \
-    ${DEPLOYDIR}/build-artifacts/techpack-dtbos/
+    if [ "${@ '1' if d.getVar('TARGET_BOARD_PLATFORM') in d.getVar('ENABLED_TARGET_PLATFORMS').split() else '0'}" = "1" ]; then
+        install -d ${DEPLOYDIR}/tech_dtbs
+        cp -a \
+        ${S}/${MACHINE}/*.dtbo \
+        ${DEPLOYDIR}/tech_dtbs/
+    else
+        install -d ${DEPLOYDIR}/build-artifacts/techpack-dtbos
+        cp -a \
+        ${S}/${VM_KERNEL_TARGET}/*.dtbo \
+        ${DEPLOYDIR}/build-artifacts/techpack-dtbos/
+    fi
 }
 
 addtask do_deploy after do_install
 
 FILES:${PN} += "${sysconfdir}/*"
+ALLOW_EMPTY:${PN} = "1"

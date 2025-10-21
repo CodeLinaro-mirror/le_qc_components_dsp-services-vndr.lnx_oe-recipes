@@ -11,7 +11,11 @@ case "$1" in
     echo -n "Starting/Loading Fastrpc dsp_kernel module: "
 
     echo "dsp_kernel:start/load" > /dev/kmsg
-    insmod $MODULE_BASE/frpc-trusted-adsprpc.ko
+    if [ -f "$MODULE_BASE/frpc-adsprpc.ko" ]; then
+        insmod "$MODULE_BASE/frpc-adsprpc.ko"
+    else
+        insmod "$MODULE_BASE/frpc-trusted-adsprpc.ko"
+    fi
 
     echo "done loading dsp_kernel module"
     ;;

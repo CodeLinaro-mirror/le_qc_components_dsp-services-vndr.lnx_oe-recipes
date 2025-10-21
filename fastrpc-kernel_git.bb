@@ -22,6 +22,8 @@ S = "${WORKDIR}/vendor/qcom/opensource/dsp-kernel"
 
 EXTRA_OEMAKE += "TARGET_SUPPORT=${BASEMACHINE}"
 
+ENABLED_TARGET_PLATFORMS = "alor-le"
+
 # Disable parallel make
 PARALLEL_MAKE = ""
 
@@ -77,21 +79,33 @@ do_install() {
   cp -rf ${WORKSPACE}/vendor/qcom/opensource/dsp-kernel/include/uapi/ ${D}/usr/include
   install -m 755 ${WORKDIR}/start_dsp_le ${D}${sysconfdir}/initscripts
 
-  cp -rp ${WORKDIR}/vendor/qcom/opensource/dsp-kernel/frpc-trusted-adsprpc.ko ${D}${libdir}/modules/frpc-trusted-adsprpc.ko
-  chown 0:0 ${D}${libdir}/modules/frpc-trusted-adsprpc.ko
+  if [ "${@ '1' if d.getVar('TARGET_BOARD_PLATFORM') in d.getVar('ENABLED_TARGET_PLATFORMS').split() else '0'}" = "1" ]; then
+      cp -rp ${WORKDIR}/vendor/qcom/opensource/dsp-kernel/frpc-adsprpc.ko ${D}${libdir}/modules/frpc-adsprpc.ko
+      chown 0:0 ${D}${libdir}/modules/frpc-adsprpc.ko
+  else
+      cp -rp ${WORKDIR}/vendor/qcom/opensource/dsp-kernel/frpc-trusted-adsprpc.ko ${D}${libdir}/modules/frpc-trusted-adsprpc.ko
+      chown 0:0 ${D}${libdir}/modules/frpc-trusted-adsprpc.ko
+  fi
 
   install -m 0644 ${WORKDIR}/dsp.service -D ${D}${systemd_unitdir}/system/dsp.service
   ln -sf ${systemd_unitdir}/system/dsp.service ${D}${systemd_unitdir}/system/multi-user.target.wants/dsp.service
 }
 
 do_deploy() {
-  cp -rp ${WORKDIR}/frpc-trusted-adsprpc.ko ${DEPLOYDIR}/
+  if [ "${@ '1' if d.getVar('TARGET_BOARD_PLATFORM') in d.getVar('ENABLED_TARGET_PLATFORMS').split() else '0'}" = "1" ]; then
+      cp -rp ${S}/frpc-adsprpc.ko ${DEPLOYDIR}/
+  else
+      cp -rp ${WORKDIR}/frpc-trusted-adsprpc.ko ${DEPLOYDIR}/
+  fi
 }
 
 addtask do_deploy after do_install
 
 python () {
-    bb.build.addtask('do_strip_and_sign_modules', 'do_install', 'do_compile', d)
+    if d.getVar("TARGET_BOARD_PLATFORM") in d.getVar("ENABLED_TARGET_PLATFORMS").split():
+        bb.build.deltask('do_strip_and_sign_modules', d)
+    else:
+        bb.build.addtask('do_strip_and_sign_modules', 'do_install', 'do_compile', d)
 }
 
 FILES:${PN} += "${sysconfdir}/*"
