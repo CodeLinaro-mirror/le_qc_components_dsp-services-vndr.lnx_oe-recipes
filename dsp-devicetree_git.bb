@@ -1,5 +1,5 @@
 DESCRIPTION       = "Fastrpc devicetree"
-LICENSE           = "GPL-2.0"
+LICENSE           = "GPL-2.0-only"
 LIC_FILES_CHKSUM = "file://Makefile;md5=febcda0bf58d4266ffa5a125675c3fc3"
 
 inherit linux-kernel-base deploy
