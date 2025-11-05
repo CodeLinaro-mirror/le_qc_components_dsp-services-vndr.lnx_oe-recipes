@@ -43,7 +43,7 @@ do_compile() {
 do_deploy() {
     if [ "${BASEMACHINE}" = "sun" ] || [ ${BASEMACHINE} == "sdmsteppe" ] || [ "${BASEMACHINE}" = "kera" ]; then
         install -d ${DEPLOYDIR}/tech_dtbs
-        install -m 0644 ${S}/${MACHINE}/*.dtbo ${DEPLOYDIR}/tech_dtbs
+        install -m 0644 ${S}/${BASEMACHINE}/*.dtbo ${DEPLOYDIR}/tech_dtbs
     else
         install -d ${DEPLOYDIR}/build-artifacts/techpack-dtbos
         cp -a \
