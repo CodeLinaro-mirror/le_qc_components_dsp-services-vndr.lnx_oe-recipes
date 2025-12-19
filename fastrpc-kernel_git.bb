@@ -36,6 +36,7 @@ CERT_PATH = "${@bb.utils.contains('MACHINE_FEATURES', 'qti-vm-target', 'dist', '
 LD_PATH = "${@oe.utils.conditional('KERNEL_TOOLS_USES_MUSLC', 'True', "${LD_PATH_MUSLC}", "${LD_PATH_GLIBC}", d)}"
 
 do_compile[lockfiles] = "${TMPDIR}/build_modules.lock"
+do_compile[network] = "${@oe.utils.conditional('TARGET_BOARD_PLATFORM', 'alor-le', '1', '0', d)}"
 
 do_configure() {
   cp -f ${WORKSPACE}/vendor/qcom/opensource/dsp-kernel/Makefile.am ${WORKSPACE}/vendor/qcom/opensource/dsp-kernel/Makefile
