@@ -60,14 +60,22 @@ do_compile() {
 }
 
 do_strip_and_sign_modules() {
-   install -m 0755 ${WORKDIR}/vendor/qcom/opensource/dsp-kernel/frpc-trusted-adsprpc.ko -D ${WORKDIR}/frpc-trusted-adsprpc.ko
+  # Check if unstripped modules tarball exists
+  if [ -f "${S}/unstripped_modules.tar.gz" ]; then
+    # Extract unstripped modules for debugging/development
+    tar -xvf ${S}/unstripped_modules.tar.gz -C ${WORKDIR}/
+    install -m 0755 ${WORKDIR}/unstripped/frpc-trusted-adsprpc.ko -D ${WORKDIR}/frpc-trusted-adsprpc.ko
+  else
+    # In case of old build system this ko is unstripped already, so just copy it.
+    install -m 0755 ${S}/frpc-trusted-adsprpc.ko -D ${WORKDIR}/frpc-trusted-adsprpc.ko
+  fi
   # strip debug symbols and sign the module
   ${STAGING_DIR_NATIVE}/usr/libexec/aarch64-oe-linux/gcc/aarch64-oe-linux/${STRIP_VERSION}/strip \
-        --strip-debug ${WORKDIR}/vendor/qcom/opensource/dsp-kernel/frpc-trusted-adsprpc.ko
+        --strip-debug ${S}/frpc-trusted-adsprpc.ko
 
   LD_LIBRARY_PATH=${LD_PATH} \
   ${KERNEL_PREBUILT_PATH}/${SIGN_PATH}/sign-file sha1 ${KERNEL_PREBUILT_PATH}/${CERT_PATH}/signing_key.pem \
-  ${KERNEL_PREBUILT_PATH}/${CERT_PATH}/signing_key.x509 ${WORKDIR}/vendor/qcom/opensource/dsp-kernel/frpc-trusted-adsprpc.ko
+  ${KERNEL_PREBUILT_PATH}/${CERT_PATH}/signing_key.x509 ${S}/frpc-trusted-adsprpc.ko
 }
 
 do_install() {
