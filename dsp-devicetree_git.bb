@@ -29,19 +29,26 @@ do_configure () {
 
 EXT_MODULES = "${@os.path.relpath("${S}", "${KERNEL_PLATFORM_PATH}")}"
 
+BUILD_MODULE_ARGS ?= ""
+BUILD_MODULE_ARGS:qrbx210-rbx ?= "dtbs"
+
+KBUILD_OPTIONS ?= ""
+KBUILD_OPTIONS:qrbx210-rbx ?= "ARCH=arm64"
+
 do_compile() {
     cd ${KERNEL_PLATFORM_PATH}
     BUILD_CONFIG=${KERNEL_BUILD_CONFIG} \
+    KBUILD_OPENTIONS="${KBUILD_OPTIONS}" \
     EXT_MODULES=${EXT_MODULES} \
     ROOTDIR=${WORKSPACE}/ \
     MODULE_OUT=${S} \
     KERNEL_KIT=${KERNEL_OUT_PATH}/ \
     OUT_DIR=temp_out_dir \
-    ./build/build_module.sh
+    ./build/build_module.sh ${BUILD_MODULE_ARGS}
 }
 
 do_deploy() {
-    if [ "${BASEMACHINE}" = "sun" ] || [ ${BASEMACHINE} == "sdmsteppe" ] || [ "${BASEMACHINE}" = "kera" ]; then
+    if [ "${BASEMACHINE}" = "sun" ] || [ ${BASEMACHINE} == "sdmsteppe" ] || [ "${BASEMACHINE}" = "kera" ] || [ "${BASEMACHINE}" = "qrbx210" ]; then
         install -d ${DEPLOYDIR}/tech_dtbs
         install -m 0644 ${S}/${BASEMACHINE}/*.dtbo ${DEPLOYDIR}/tech_dtbs
     else
