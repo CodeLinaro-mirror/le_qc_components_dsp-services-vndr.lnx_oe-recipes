@@ -8,8 +8,10 @@ inherit autotools linux-kernel-base deploy
 
 PR = "r0"
 
-DEPENDS = "rsync-native"
-DEPENDS += "bc-native bison-native"
+# Add for DDK
+DDK_BUILD ?= "false"
+DEPENDS += "${@bb.utils.contains('DDK_BUILD', 'false', \
+           'rsync-native bc-native bison-native', '', d)}"
 
 do_configure[depends] += "virtual/kernel:do_shared_workdir"
 
@@ -22,6 +24,8 @@ S = "${WORKDIR}/vendor/qcom/opensource/dsp-kernel"
 
 EXTRA_OEMAKE += "TARGET_SUPPORT=${BASEMACHINE}"
 
+ENABLED_TARGET_PLATFORMS = "bengal-le"
+
 # Disable parallel make
 PARALLEL_MAKE = "-j1"
 
@@ -29,17 +33,30 @@ KERNEL_VERSION = "${@get_kernelversion_file("${STAGING_KERNEL_BUILDDIR}")}"
 EXT_MODULES = "${@os.path.relpath("${S}", "${KERNEL_PLATFORM_PATH}")}"
 
 do_compile[lockfiles] = "${TMPDIR}/build_modules.lock"
+do_compile[network] = "${@oe.utils.conditional('TARGET_BOARD_PLATFORM', 'bengal-le', '1', '0', d)}"
+
+COMPILE_WORKDIR ?= "${KERNEL_PLATFORM_PATH}"
+COMPILE_WORKDIR:qrbx210-rbx = "${WORKSPACE}/kernel-${PREFERRED_VERSION_linux-msm}/kernel_platform"
+
+BUILD_CONFIG_ARG ?= "msm-kernel/${KERNEL_CONFIG}"
+BUILD_CONFIG_ARG:qrbx210-rbx = "${KERNEL_BUILD_CONFIG}"
+
+EXTRA_MODULE_ENV ?= "INPLACE_COMPILE=y"
+EXTRA_MODULE_ENV:qrbx210-rbx = "ENABLE_DDK_BUILD=${DDK_BUILD} \
+  TARGET_BOARD_PLATFORM=${TARGET_BOARD_PLATFORM} \
+  VARIANT=${KERNEL_DEFCONFIG_VARIANT} \
+  ROOTDIR=${WORKSPACE}/"
 
 do_compile() {
-  cd ${KERNEL_PLATFORM_PATH}
-  BUILD_CONFIG=msm-kernel/${KERNEL_CONFIG} \
+  cd ${COMPILE_WORKDIR}
+  BUILD_CONFIG=${BUILD_CONFIG_ARG} \
   EXT_MODULES=../../vendor/qcom/opensource/dsp-kernel \
   MODULE_OUT=${WORKDIR}/vendor/qcom/opensource/dsp-kernel \
   OUT_DIR=temp_out_dir \
   KERNEL_KIT=${KERNEL_OUT_PATH}/ \
   KERNEL_UAPI_HEADERS_DIR=${STAGING_KERNEL_BUILDDIR} \
-  INPLACE_COMPILE=y \
-  ./build/build_module.sh
+  ${EXTRA_MODULE_ENV} \
+ ./build/build_module.sh
 }
 
 do_install() {
