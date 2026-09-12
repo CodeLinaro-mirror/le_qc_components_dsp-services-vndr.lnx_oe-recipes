@@ -43,9 +43,13 @@ do_compile() {
 
 do_deploy() {
     install -d ${DEPLOYDIR}/build-artifacts/techpack-dtbos
-    cp -a \
-    ${S}/${VM_KERNEL_TARGET}/*.dtbo \
-    ${DEPLOYDIR}/build-artifacts/techpack-dtbos/
+    for variant in $(echo "${SUPPORTED_VM_VARIANTS}" | tr ':' ' '); do
+        if [ -d "${S}/${variant}" ]; then
+            cp -a \
+            ${S}/${variant}/*.dtbo \
+            ${DEPLOYDIR}/build-artifacts/techpack-dtbos/
+        fi
+    done
 }
 
 addtask do_deploy after do_install
